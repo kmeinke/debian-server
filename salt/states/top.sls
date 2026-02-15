@@ -34,5 +34,6 @@ base:
 
     # Monitoring & logging
     - monitoring.rsyslog
+    - monitoring.journald
     - monitoring.logrotate
     - monitoring.motd

@@ -9,3 +9,4 @@ base:
     - firewall
     - fail2ban
     - kernel
+    - logging

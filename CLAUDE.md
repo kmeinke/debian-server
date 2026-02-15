@@ -6,6 +6,7 @@ Masterless SaltStack configuration for a Debian Bookworm server. Tested via Dock
 - Do not imply I want to implement a change just because I ask a yes or no question.
 - Never commit without asking me explicitly first.
 - Before committing, review all changes and propose how to split them into logical commits.
+- Before committing, ensure documentation (README.md, CLAUDE.md) is updated to reflect the changes.
 
 ## Project Structure
 
@@ -25,7 +26,7 @@ secrets/           Not committed (.gitignore)
 - State dependencies: packages first, then files, then services. Use `require`, `watch`, and `watch_in`.
 - Docker compatibility: guard systemd-dependent states with `onlyif: test -d /run/systemd/system`.
 - State naming: dot notation matching directory structure (e.g., `security.firewall`).
-- One pillar file per domain (network.sls, users.sls, ssh.sls, etc.).
+- One pillar file per domain (network.sls, users.sls, ssh.sls, logging.sls, etc.).
 
 ## Testing
 
