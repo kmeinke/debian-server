@@ -1,6 +1,12 @@
 /etc/sysctl.d/99-hardening.conf:
   file.managed:
     - source: salt://security/files/99-hardening.conf
+    - template: jinja
+    - mode: '0644'
+
+/etc/modprobe.d/blacklist-cis.conf:
+  file.managed:
+    - source: salt://security/files/modprobe-blacklist.conf
     - mode: '0644'
 
 apply_sysctl:

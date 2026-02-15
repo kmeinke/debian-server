@@ -8,3 +8,4 @@ base:
     - apt
     - firewall
     - fail2ban
+    - kernel
