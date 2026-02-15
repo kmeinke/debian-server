@@ -8,7 +8,7 @@ usage() {
     echo ""
     echo "Commands:"
     echo "  build   Remove container and rebuild image"
-    echo "  run     Start container with systemd, open shell"
+    echo "  shell     Start container with systemd, open shell"
     echo "  test    Start container with systemd, run highstate"
     echo "  clean   Remove container and image"
     echo ""
@@ -29,7 +29,7 @@ case "$CMD" in
         docker compose down
         docker compose build
         ;;
-    run)
+    shell)
         ensure_running
         docker exec -it "$CONTAINER" bash
         ;;

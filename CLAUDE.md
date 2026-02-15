@@ -31,7 +31,7 @@ Docker container boots with systemd as PID 1 (privileged mode), allowing full te
 
 ```bash
 ./scripts/test.sh build   # remove container and rebuild image
-./scripts/test.sh run     # start container, open shell
+./scripts/test.sh shell   # start container, open shell
 ./scripts/test.sh test    # start container, run highstate (default)
 ./scripts/test.sh clean   # remove container, image, and volumes
 ```
