@@ -2,8 +2,10 @@
 
 Masterless SaltStack configuration for a Debian Bookworm server. Tested via Docker.
 
-## conversation rules
-- do not imply i want implement change just because i ask you a yes or no question.
+## Conversation Rules
+- Do not imply I want to implement a change just because I ask a yes or no question.
+- Never commit without asking me explicitly first.
+- Before committing, review all changes and propose how to split them into logical commits.
 
 ## Project Structure
 
