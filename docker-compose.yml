@@ -1,0 +1,7 @@
+services:
+  salt:
+    build: .
+    volumes:
+      - ./salt/states:/srv/salt:ro
+      - ./salt/pillar:/srv/pillar:ro
+    command: ["salt-call", "--local", "state.highstate", "test=True"]
