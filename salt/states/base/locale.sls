@@ -14,8 +14,15 @@ generate_locale:
     - require:
       - pkg: locales
 
+ensure_default_locale_file:
+  file.managed:
+    - name: /etc/default/locale
+    - contents: 'LANG={{ locale }}'
+    - require:
+      - locale: generate_locale
+
 set_default_locale:
   locale.system:
     - name: {{ locale }}
     - require:
-      - locale: generate_locale
+      - file: ensure_default_locale_file
