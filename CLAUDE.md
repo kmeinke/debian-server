@@ -40,6 +40,12 @@ Docker container boots with systemd as PID 1 (privileged mode), allowing full te
 
 Container auto-starts and auto-builds if not already running. States and pillars are mounted read-only.
 
+## Authentication Policy
+
+- Users have no passwords (locked). Authentication is SSH key only.
+- Only root has a password (for console recovery).
+- sudo is NOPASSWD for authorized users. su is restricted to the sudo group.
+
 ## File Conventions
 
 - LF line endings enforced via .gitattributes.
