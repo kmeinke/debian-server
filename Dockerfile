@@ -9,9 +9,9 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     && mkdir -p /etc/apt/keyrings \
     && curl -fsSL https://packages.broadcom.com/artifactory/api/security/keypair/SaltProjectKey/public | gpg --dearmor -o /etc/apt/keyrings/salt-archive-keyring.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/salt-archive-keyring.gpg] https://packages.broadcom.com/artifactory/saltproject-deb stable main" > /etc/apt/sources.list.d/salt.list \
+    && printf 'Types: deb\nURIs: https://packages.broadcom.com/artifactory/saltproject-deb\nSuites: stable\nComponents: main\nSigned-By: /etc/apt/keyrings/salt-archive-keyring.gpg\n' > /etc/apt/sources.list.d/salt.sources \
     && apt-get update \
-    && apt-get install -y salt-minion openssh-client \
+    && apt-get install -y salt-minion openssh-client iproute2 bash-completion systemd systemd-sysv \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -22,4 +22,5 @@ COPY salt/minion.d/local.conf /etc/salt/minion.d/local.conf
 # State and pillar mount points
 RUN mkdir -p /srv/salt /srv/pillar
 
-CMD ["salt-call", "--local", "state.highstate", "test=True"]
+STOPSIGNAL SIGRTMIN+3
+CMD ["/sbin/init"]

@@ -1,44 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+CONTAINER="server-salt"
+
 usage() {
     echo "Usage: $0 [command]"
     echo ""
     echo "Commands:"
-    echo "  highstate    Full highstate dry-run (default)"
-    echo "  apply        Full highstate for real (installs packages, writes files)"
-    echo "  test STATE   Dry-run a single state (e.g. security.firewall)"
-    echo "  pillar       Show rendered pillar data"
-    echo "  shell        Drop into the container for debugging"
-    echo "  build        Build the Docker image only"
+    echo "  build   Remove container and rebuild image"
+    echo "  run     Start container with systemd, open shell"
+    echo "  test    Start container with systemd, run highstate"
+    echo "  clean   Remove container and image"
     echo ""
-    echo "Examples:"
-    echo "  $0                          # dry-run all states"
-    echo "  $0 test security.firewall   # dry-run one state"
-    echo "  $0 shell                    # interactive shell"
 }
 
-CMD="${1:-highstate}"
+ensure_running() {
+    if ! docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null | grep -q true; then
+        docker compose up -d --build
+        echo "Waiting for systemd to boot..."
+        sleep 3
+    fi
+}
+
+CMD="${1:-test}"
 
 case "$CMD" in
-    highstate)
-        docker compose up --build
+    build)
+        docker compose down
+        docker compose build
         ;;
-    apply)
-        docker compose run --rm salt salt-call --local state.highstate
+    run)
+        ensure_running
+        docker exec -it "$CONTAINER" bash
         ;;
     test)
-        STATE="${2:?Error: specify a state name, e.g. $0 test security.firewall}"
-        docker compose run --rm salt salt-call --local state.apply "$STATE" test=True
+        ensure_running
+        docker exec "$CONTAINER" salt-call --local state.highstate
         ;;
-    pillar)
-        docker compose run --rm salt salt-call --local pillar.items
-        ;;
-    shell)
-        docker compose run --rm salt bash
-        ;;
-    build)
-        docker compose build
+    clean)
+        docker compose down --rmi all --volumes
         ;;
     help|-h|--help)
         usage

@@ -1,7 +1,12 @@
 services:
   salt:
     build: .
+    container_name: server-salt
+    privileged: true
     volumes:
       - ./salt/states:/srv/salt:ro
       - ./salt/pillar:/srv/pillar:ro
-    command: ["salt-call", "--local", "state.highstate", "test=True"]
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    tmpfs:
+      - /run
+      - /tmp
