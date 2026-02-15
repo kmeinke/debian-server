@@ -7,6 +7,7 @@ Masterless SaltStack configuration for a Debian Bookworm server. Tested via Dock
 - Never commit without asking me explicitly first.
 - Before committing, review all changes and propose how to split them into logical commits.
 - Before committing, ensure documentation (README.md, CLAUDE.md) is updated to reflect the changes.
+- When researching security guidelines (CIS, ANSSI, etc.), check `reference/` for PDF documents before searching the web.
 
 ## Project Structure
 
@@ -17,6 +18,7 @@ salt/pillar/       Pillar data (configuration values)
 salt/minion.d/     Masterless minion config
 scripts/test.sh    Docker-based test runner
 secrets/           Not committed (.gitignore)
+reference/         CIS benchmarks, ANSSI guides (PDFs)
 ```
 
 ## Salt Conventions
