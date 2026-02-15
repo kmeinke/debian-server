@@ -8,6 +8,7 @@ exim4_service:
   service.running:
     - name: exim4
     - enable: True
+    - onlyif: test -d /run/systemd/system
     - require:
       - pkg: exim4
 
@@ -16,6 +17,8 @@ exim4_service:
     - source: salt://mail/exim4/files/update-exim4.conf.conf
     - template: jinja
     - mode: '0644'
+    - require:
+      - pkg: exim4
 
 /etc/exim4/passwd.client:
   file.managed:
@@ -24,6 +27,8 @@ exim4_service:
     - mode: '0640'
     - user: root
     - group: Debian-exim
+    - require:
+      - pkg: exim4
 
 update_exim4_config:
   cmd.wait:

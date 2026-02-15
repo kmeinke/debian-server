@@ -6,5 +6,6 @@
 apply_sysctl:
   cmd.wait:
     - name: sysctl --system
+    - onlyif: test -d /run/systemd/system
     - watch:
       - file: /etc/sysctl.d/99-hardening.conf

@@ -1,3 +1,6 @@
+openssh-client:
+  pkg.installed: []
+
 {% for username, user in salt['pillar.get']('users', {}).items() %}
 
 {{ username }}:
@@ -10,12 +13,14 @@
       - {{ group }}
       {% endfor %}
 
-  {% if user.get('ssh_keys') %}
+{% if user.get('ssh_keys') %}
+{{ username }}_ssh_keys:
   ssh_auth.manage:
     - user: {{ username }}
     - ssh_keys: {{ user.ssh_keys | json }}
     - require:
       - user: {{ username }}
-  {% endif %}
+      - pkg: openssh-client
+{% endif %}
 
 {% endfor %}

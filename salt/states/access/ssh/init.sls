@@ -4,6 +4,7 @@ openssh-server:
 sshd:
   service.running:
     - enable: True
+    - onlyif: test -d /run/systemd/system
     - require:
       - pkg: openssh-server
 

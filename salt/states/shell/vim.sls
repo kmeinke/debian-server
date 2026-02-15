@@ -9,8 +9,8 @@ vim:
       - pkg: vim
 
 set_default_editor:
-  alternatives.set:
-    - name: editor
-    - path: /usr/bin/vim.basic
+  cmd.run:
+    - name: update-alternatives --set editor /usr/bin/vim.basic
+    - unless: update-alternatives --query editor | grep -q 'Value:./usr/bin/vim.basic'
     - require:
       - pkg: vim
