@@ -28,6 +28,9 @@ base:
     - security.firewall
     - security.fail2ban
     - security.sysctl
+    - security.coredump
+    - security.packages
+    - security.cron
 
     # Monitoring & logging
     - monitoring.rsyslog
