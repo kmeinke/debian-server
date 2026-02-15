@@ -1,5 +1,6 @@
 {% set f2b = salt['pillar.get']('fail2ban', {}) %}
 [DEFAULT]
+logtarget = SYSTEMD-JOURNAL
 bantime  = {{ f2b.get('bantime', '1h') }}
 findtime = {{ f2b.get('findtime', '10m') }}
 maxretry = {{ f2b.get('maxretry', 3) }}
