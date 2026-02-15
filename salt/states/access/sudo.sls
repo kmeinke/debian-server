@@ -12,6 +12,16 @@ sudo:
     - require:
       - pkg: sudo
 
+# CIS 5.2.7 — Restrict su to sudo group
+/etc/pam.d/su:
+  file.managed:
+    - contents: |
+        auth required pam_wheel.so use_uid group=sudo
+        @include common-auth
+        @include common-account
+        @include common-session
+    - mode: '0644'
+
 {% for username, user in salt['pillar.get']('users', {}).items() %}
 {% if user.get('sudo', False) %}
 
