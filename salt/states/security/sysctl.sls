@@ -8,6 +8,7 @@
   file.managed:
     - source: salt://security/files/modprobe-blacklist.conf
     - mode: '0644'
+    - makedirs: True
 
 apply_sysctl:
   cmd.wait:
