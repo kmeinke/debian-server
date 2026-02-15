@@ -1,5 +1,6 @@
 {% set codename = salt['pillar.get']('apt:codename', grains['oscodename']) %}
 {% set mail_to = salt['pillar.get']('mail:root_alias', 'root') %}
+{% set reboot_time = salt['pillar.get']('apt:reboot_time', '04:00') %}
 
 Unattended-Upgrade::Origins-Pattern {
     "origin=Debian,codename=${distro_codename},label=Debian";
@@ -13,4 +14,7 @@ Unattended-Upgrade::Package-Blacklist {
 Unattended-Upgrade::Mail "{{ mail_to }}";
 Unattended-Upgrade::MailReport "on-change";
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
-Unattended-Upgrade::Automatic-Reboot "false";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+Unattended-Upgrade::Automatic-Reboot-Time "{{ reboot_time }}";
