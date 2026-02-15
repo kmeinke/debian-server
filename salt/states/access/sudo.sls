@@ -25,6 +25,7 @@ sudo:
 {% for username, user in salt['pillar.get']('users', {}).items() %}
 {% if user.get('sudo', False) %}
 
+# CIS 5.2.1 — Sudo per-user configuration
 /etc/sudoers.d/{{ username }}:
   file.managed:
     - contents: |

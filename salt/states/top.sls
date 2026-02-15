@@ -31,6 +31,7 @@ base:
     - security.coredump
     - security.packages
     - security.cron
+    - security.etc-passwd
 
     # Monitoring & logging
     - monitoring.rsyslog

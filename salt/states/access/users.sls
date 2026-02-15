@@ -13,6 +13,17 @@ openssh-client:
       - {{ group }}
       {% endfor %}
 
+# CIS 7.2.9 — Home directory permissions
+{{ username }}_home_permissions:
+  file.directory:
+    - name: /home/{{ username }}
+    - user: {{ username }}
+    - group: {{ username }}
+    - mode: '0750'
+    - require:
+      - user: {{ username }}
+
+# CIS 7.2.2 — No empty password fields (lock password)
 {{ username }}_lock_password:
   cmd.run:
     - name: passwd -l {{ username }}
