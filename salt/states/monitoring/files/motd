@@ -1,0 +1,9 @@
+
+  Hostname : {{ grains['host'] }}
+  FQDN     : {{ grains['fqdn'] }}
+  OS       : {{ grains['osfullname'] }} {{ grains['osrelease'] }}
+  Kernel   : {{ grains['kernelrelease'] }}
+  CPUs     : {{ grains['num_cpus'] }}
+  Memory   : {{ grains['mem_total'] }} MB
+
+  ** This system is managed by Salt. Local changes may be overwritten. **

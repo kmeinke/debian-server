@@ -1,0 +1,10 @@
+{% set mail = salt['pillar.get']('mail', {}) %}
+mailer-daemon: postmaster
+postmaster: root
+nobody: root
+hostmaster: root
+webmaster: root
+www: root
+{% if mail.get('root_alias') %}
+root: {{ mail.root_alias }}
+{% endif %}

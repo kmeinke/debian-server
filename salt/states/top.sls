@@ -1,0 +1,35 @@
+base:
+  '*':
+    # Base system
+    - base.hostname
+    - base.locale
+    - base.ntp
+    - base.network
+
+    # Access & users
+    - access.ssh
+    - access.users
+    - access.sudo
+
+    # Shell & tools
+    - shell.bash
+    - shell.vim
+    - shell.git
+    - shell.packages
+
+    # Mail
+    - mail.exim4
+
+    # Package management
+    - apt
+    - apt.unattended-upgrades
+
+    # Security
+    - security.firewall
+    - security.fail2ban
+    - security.sysctl
+
+    # Monitoring & logging
+    - monitoring.rsyslog
+    - monitoring.logrotate
+    - monitoring.motd

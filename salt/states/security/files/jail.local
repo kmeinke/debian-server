@@ -1,0 +1,10 @@
+{% set f2b = salt['pillar.get']('fail2ban', {}) %}
+[DEFAULT]
+bantime  = {{ f2b.get('bantime', '1h') }}
+findtime = {{ f2b.get('findtime', '10m') }}
+maxretry = {{ f2b.get('maxretry', 3) }}
+banaction = nftables-multiport
+
+[sshd]
+enabled = true
+port    = {{ salt['pillar.get']('ssh:port', 22) }}

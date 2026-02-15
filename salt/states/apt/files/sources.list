@@ -1,0 +1,6 @@
+{% set codename = salt['pillar.get']('apt:codename', grains['oscodename']) %}
+{% set mirror = salt['pillar.get']('apt:mirror', 'http://deb.debian.org/debian') %}
+
+deb {{ mirror }} {{ codename }} main contrib non-free non-free-firmware
+deb {{ mirror }} {{ codename }}-updates main contrib non-free non-free-firmware
+deb http://security.debian.org/debian-security {{ codename }}-security main contrib non-free non-free-firmware

@@ -1,0 +1,4 @@
+{% set mail = salt['pillar.get']('mail', {}) %}
+{% if mail.get('smarthost_user') %}
+{{ mail.smarthost }}:{{ mail.smarthost_user }}:{{ mail.smarthost_password }}
+{% endif %}

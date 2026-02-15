@@ -1,0 +1,35 @@
+{% set ssh = salt['pillar.get']('ssh', {}) %}
+Port {{ ssh.get('port', 22) }}
+Protocol 2
+
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+
+# Authentication
+PermitRootLogin {{ ssh.get('permit_root_login', 'no') }}
+PubkeyAuthentication yes
+PasswordAuthentication {{ ssh.get('password_auth', 'no') }}
+ChallengeResponseAuthentication no
+UsePAM yes
+
+# Security
+MaxAuthTries {{ ssh.get('max_auth_tries', 3) }}
+MaxSessions {{ ssh.get('max_sessions', 3) }}
+X11Forwarding no
+AllowAgentForwarding no
+AllowTcpForwarding no
+
+{% if ssh.get('allowed_users') %}
+AllowUsers {{ ssh.allowed_users | join(' ') }}
+{% endif %}
+
+# Logging
+SyslogFacility AUTH
+LogLevel VERBOSE
+
+# Keep alive
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# Subsystems
+Subsystem sftp /usr/lib/openssh/sftp-server
