@@ -3,10 +3,11 @@ services:
     build: .
     container_name: server-salt
     privileged: true
+    cgroup: host
     volumes:
       - ./salt/states:/srv/salt:ro
       - ./salt/pillar:/srv/pillar:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     tmpfs:
       - /run
-      - /tmp
+      - /run/lock
