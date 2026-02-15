@@ -12,6 +12,23 @@ sshd:
   file.managed:
     - source: salt://access/ssh/files/sshd_config
     - template: jinja
-    - mode: '0644'
+    - mode: '0600'
     - watch_in:
       - service: sshd
+
+# CIS 5.1.3 — SSH host key permissions
+ssh_host_ed25519_key:
+  file.managed:
+    - name: /etc/ssh/ssh_host_ed25519_key
+    - mode: '0600'
+    - replace: False
+    - require:
+      - pkg: openssh-server
+
+ssh_host_ed25519_key_pub:
+  file.managed:
+    - name: /etc/ssh/ssh_host_ed25519_key.pub
+    - mode: '0644'
+    - replace: False
+    - require:
+      - pkg: openssh-server
