@@ -1,3 +1,4 @@
 apt:
   # codename: bookworm  # auto-detected from grains if omitted
-  mirror: http://deb.debian.org/debian
+  mirror: https://deb.debian.org/debian
+  reboot_time: "04:00"
