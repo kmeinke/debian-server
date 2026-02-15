@@ -13,6 +13,13 @@ openssh-client:
       - {{ group }}
       {% endfor %}
 
+{{ username }}_lock_password:
+  cmd.run:
+    - name: passwd -l {{ username }}
+    - unless: passwd -S {{ username }} | grep -q '^{{ username }} L'
+    - require:
+      - user: {{ username }}
+
 {% if user.get('ssh_keys') %}
 {{ username }}_ssh_keys:
   ssh_auth.manage:
