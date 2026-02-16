@@ -4,10 +4,9 @@ services:
     container_name: server-salt
     privileged: true
     cgroup: host
+    ports:
+      - "2222:22"
     volumes:
-      - ./salt/states:/srv/salt:ro
-      - ./salt/pillar:/srv/pillar:ro
-      - ./secrets:/srv/secrets:ro
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
     tmpfs:
       - /run

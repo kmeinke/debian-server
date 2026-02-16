@@ -1,0 +1,13 @@
+root_dir: /mnt/c/Code/server-salt/.salt
+log_file: /mnt/c/Code/server-salt/.salt/salt-ssh.log
+cachedir: /mnt/c/Code/server-salt/.salt/cache
+pki_dir: /mnt/c/Code/server-salt/.salt/pki
+file_roots:
+  base:
+    - /mnt/c/Code/server-salt/salt/states
+
+pillar_roots:
+  base:
+    - /mnt/c/Code/server-salt/salt/pillar
+
+roster_file: /mnt/c/Code/server-salt/salt/roster

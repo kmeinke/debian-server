@@ -1,0 +1,6 @@
+server:
+  host: localhost
+  port: 2222
+  user: admin
+  sudo: True
+  priv: /home/knut/.ssh/admin_ed25519

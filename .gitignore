@@ -1,0 +1,2 @@
+salt/pillar/secrets/*.sls
+.salt/
