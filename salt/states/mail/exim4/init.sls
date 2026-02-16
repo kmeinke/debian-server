@@ -22,8 +22,7 @@ exim4_service:
 
 /etc/exim4/passwd.client:
   file.managed:
-    - source: salt://mail/exim4/files/passwd.client
-    - template: jinja
+    - source: file:///srv/secrets/passwd.client
     - mode: '0640'
     - user: root
     - group: Debian-exim
