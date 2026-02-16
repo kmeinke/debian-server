@@ -10,3 +10,4 @@ base:
     - fail2ban
     - kernel
     - logging
+    - secrets.server

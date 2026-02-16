@@ -1,5 +1,5 @@
 creation_rules:
-  - path_regex: ^sops/.*\.sops\.yaml$
+  - path_regex: ^salt/pillar/secrets/.*\.sls\.enc$
     age: >-
       age148anzr0r56whttfesl2edwcur6kwh4xu39r8re0n6s0suuqmkswsg55vav,
       age1wlwh8qn6ytkf4daz2hxpg60kmfk4qrcxgpps7gewpmgt2lsaegkqy67ypu

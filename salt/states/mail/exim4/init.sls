@@ -22,7 +22,7 @@ exim4_service:
 
 /etc/exim4/passwd.client:
   file.managed:
-    - source: file:///srv/secrets/passwd.client
+    - contents_pillar: secrets:mail:passwd_client
     - mode: '0640'
     - user: root
     - group: Debian-exim
