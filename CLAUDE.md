@@ -1,6 +1,6 @@
 # server-salt
 
-Masterless SaltStack configuration for a Debian Bookworm server. Tested via Docker.
+SaltStack configuration for a Debian Bookworm server, managed via salt-ssh. Tested via Docker.
 
 ## Conversation Rules
 - Do not imply I want to implement a change just because I ask a yes or no question.
@@ -12,13 +12,15 @@ Masterless SaltStack configuration for a Debian Bookworm server. Tested via Dock
 ## Project Structure
 
 ```
-salt/states/       Salt state definitions, organized by function
+salt/states/          Salt state definitions, organized by function
 salt/states/*/files/  Config file templates managed by states
-salt/pillar/       Pillar data (configuration values)
-salt/minion.d/     Masterless minion config
-scripts/test.sh    Docker-based test runner
-secrets/           Not committed (.gitignore)
-reference/         CIS benchmarks, ANSSI guides (PDFs)
+salt/pillar/          Pillar data (configuration values)
+salt/pillar/secrets/  SOPS-encrypted secrets (*.sls.enc)
+salt/master           salt-ssh config (file_roots, pillar_roots)
+salt/roster           salt-ssh target host definitions
+scripts/test.py       Docker-based test runner (salt-ssh)
+scripts/sops.py       SOPS helper (import/export/edit/rotate)
+reference/            CIS benchmarks, ANSSI guides (PDFs)
 ```
 
 ## Salt Conventions
@@ -32,16 +34,16 @@ reference/         CIS benchmarks, ANSSI guides (PDFs)
 
 ## Testing
 
-Docker container boots with systemd as PID 1 (privileged mode), allowing full testing of services, timers, and hostname.
+Docker container boots with systemd as PID 1 (privileged mode), running sshd. salt-ssh connects from WSL to apply states.
 
 ```bash
-./scripts/test.sh build   # remove container and rebuild image
-./scripts/test.sh shell   # start container, open shell
-./scripts/test.sh test    # start container, run highstate (default)
-./scripts/test.sh clean   # remove container, image, and volumes
+./scripts/test.py build   # remove container and rebuild image
+./scripts/test.py shell   # start container, open shell
+./scripts/test.py test    # start container, run highstate via salt-ssh
+./scripts/test.py clean   # remove container, image, and volumes
 ```
 
-Container auto-starts and auto-builds if not already running. States and pillars are mounted read-only.
+Container auto-starts and auto-builds if not already running. salt-ssh connects on port 2222 as admin user with sudo.
 
 ## Authentication Policy
 
@@ -53,4 +55,6 @@ Container auto-starts and auto-builds if not already running. States and pillars
 
 - LF line endings enforced via .gitattributes.
 - APT sources use DEB822 format (.sources files, not .list).
-- Secrets go in /secrets/ (gitignored).
+- Secrets are SOPS-encrypted with age in `salt/pillar/secrets/*.sls.enc`.
+- Edit secrets via: `scripts/sops.py edit salt/pillar/secrets/server.sls.enc`
+- Decrypted `.sls` files are gitignored and cleaned up automatically after salt-ssh runs.
