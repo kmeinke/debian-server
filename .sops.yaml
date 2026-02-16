@@ -1,0 +1,7 @@
+creation_rules:
+  - path_regex: ^sops/.*\.sops\.yaml$
+    age: >-
+      age148anzr0r56whttfesl2edwcur6kwh4xu39r8re0n6s0suuqmkswsg55vav,
+      age1wlwh8qn6ytkf4daz2hxpg60kmfk4qrcxgpps7gewpmgt2lsaegkqy67ypu
+    # kmeinke: age148anzr0r56whttfesl2edwcur6kwh4xu39r8re0n6s0suuqmkswsg55vav
+    # master:  age1wlwh8qn6ytkf4daz2hxpg60kmfk4qrcxgpps7gewpmgt2lsaegkqy67ypu
