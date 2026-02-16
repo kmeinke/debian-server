@@ -24,9 +24,17 @@ def dot_to_bracket(key):
     return "".join(f'["{part}"]' for part in key.split("."))
 
 
-def sops(*args):
+def sls_flags(sops_file):
+    """Return extra flags for .sls files (SOPS doesn't recognize the extension)."""
+    if sops_file.endswith(".sls"):
+        return ["--input-type=yaml", "--output-type=yaml"]
+    return []
+
+
+def sops(*args, sops_file=None):
     """Run a sops command, raising on failure."""
-    result = subprocess.run(["sops", *args], capture_output=True, text=True)
+    extra = sls_flags(sops_file) if sops_file else []
+    result = subprocess.run(["sops", *extra, *args], capture_output=True, text=True)
     if result.returncode != 0:
         sys.exit(f"sops error: {result.stderr.strip()}")
     return result.stdout
@@ -38,23 +46,23 @@ def cmd_import(sops_file, key, input_file):
         sys.exit(f"Error: {input_file} not found")
     encoded = base64.b64encode(path.read_bytes()).decode()
     bracket_key = dot_to_bracket(key)
-    sops("--set", f'{bracket_key} "{encoded}"', sops_file)
+    sops("--set", f'{bracket_key} "{encoded}"', sops_file, sops_file=sops_file)
     print(f"Imported {input_file} -> {sops_file} {key}")
 
 
 def cmd_export(sops_file, key, output_file):
     bracket_key = dot_to_bracket(key)
-    encoded = sops("-d", "--extract", bracket_key, sops_file)
+    encoded = sops("-d", "--extract", bracket_key, sops_file, sops_file=sops_file)
     Path(output_file).write_bytes(base64.b64decode(encoded.strip()))
     print(f"Exported {sops_file} {key} -> {output_file}")
 
 
 def cmd_edit(sops_file):
-    subprocess.run(["sops", sops_file])
+    subprocess.run(["sops", *sls_flags(sops_file), sops_file])
 
 
 def cmd_rotate(sops_file):
-    sops("--rotate", "--in-place", sops_file)
+    sops("--rotate", "--in-place", sops_file, sops_file=sops_file)
     print(f"Rotated data keys in {sops_file}")
 
 
@@ -68,7 +76,7 @@ def main():
     commands = {
         "import": (cmd_import, 3),
         "export": (cmd_export, 3),
-        "edit":   (cmd_edit, 1),
+        "edit": (cmd_edit, 1),
         "rotate": (cmd_rotate, 1),
     }
 
