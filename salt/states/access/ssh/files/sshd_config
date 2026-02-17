@@ -32,6 +32,9 @@ AllowUsers {{ ssh.allowed_users | join(' ') }}
 SyslogFacility AUTH
 LogLevel VERBOSE
 
+# Display
+PrintMotd no
+
 # Keep alive
 ClientAliveInterval 300
 ClientAliveCountMax 2
