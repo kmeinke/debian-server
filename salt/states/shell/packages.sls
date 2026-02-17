@@ -13,3 +13,4 @@ common_packages:
       - strace
       - ncdu
       - bash-completion
+      - man-db
