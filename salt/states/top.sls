@@ -32,9 +32,10 @@ base:
     - security.packages
     - security.cron
     - security.etc-passwd
+    - security.banners
+    - security.pki
 
     # Monitoring & logging
     - monitoring.rsyslog
     - monitoring.journald
     - monitoring.logrotate
-    - monitoring.motd
