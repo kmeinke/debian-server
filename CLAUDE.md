@@ -8,6 +8,7 @@ SaltStack configuration for a Debian Bookworm server, managed via salt-ssh. Test
 - Before committing, review all changes and propose how to split them into logical commits.
 - Before committing, ensure documentation (README.md, CLAUDE.md) is updated to reflect the changes.
 - When researching security guidelines (CIS, ANSSI, etc.), check `reference/` for PDF documents before searching the web.
+- We do not trust by default. Enforce explicit permissions, disable unnecessary features, and verify rather than assume secure defaults.
 
 ## Project Structure
 
@@ -39,6 +40,7 @@ Docker container boots with systemd as PID 1 (privileged mode), running sshd. sa
 ```bash
 ./scripts/test.py build   # remove container and rebuild image
 ./scripts/test.py shell   # start container, open shell
+./scripts/test.py ssh     # start container, ssh into it as admin
 ./scripts/test.py test    # start container, run highstate via salt-ssh
 ./scripts/test.py clean   # remove container, image, and volumes
 ```
