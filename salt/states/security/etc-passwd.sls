@@ -20,6 +20,19 @@
     - replace: False
 {% endfor %}
 
+# Remove unused default users (CIS 7.2.1)
+{% for user in ['sync', 'games', 'lp', 'news', 'proxy', 'list', 'irc'] %}
+remove_user_{{ user }}:
+  user.absent:
+    - name: {{ user }}
+
+remove_group_{{ user }}:
+  group.absent:
+    - name: {{ user }}
+    - require:
+      - user: remove_user_{{ user }}
+{% endfor %}
+
 # CIS 7.1.10 — /etc/security/opasswd (0600, root:root)
 opasswd_create:
   cmd.run:
