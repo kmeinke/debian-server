@@ -24,22 +24,6 @@ alias grep='grep --color=auto'
 alias ..='cd ..'
 alias ...='cd ../..'
 
-# Peek: auto-detect and view files or directories
-peek() {
-  local target="${1:-.}"
-  if [ -d "$target" ]; then
-    ls -la --color=auto "$target"
-  elif [ -f "$target" ]; then
-    case "$target" in
-      *.gz|*.tgz) zless "$target" ;;
-      *) less -S "$target" ;;
-    esac
-  else
-    echo "peek: '$target' not found" >&2
-    return 1
-  fi
-}
-
 # Enable bash completion
 if [ -f /etc/bash_completion ]; then
   . /etc/bash_completion

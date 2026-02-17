@@ -1,0 +1,14 @@
+#!/bin/bash
+# peek: auto-detect and view files or directories
+target="${1:-.}"
+if [ -d "$target" ]; then
+  ls -la --color=auto "$target"
+elif [ -f "$target" ]; then
+  case "$target" in
+    *.gz|*.tgz) zless "$target" ;;
+    *) less -S "$target" ;;
+  esac
+else
+  echo "peek: '$target' not found" >&2
+  exit 1
+fi
