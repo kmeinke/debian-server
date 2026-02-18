@@ -1,0 +1,18 @@
+# CIS 5.3.1 / 5.3.2 — common-auth
+# Managed by Salt — do not edit manually
+
+# pam_faillock preauth: silently check if account is already locked before attempting auth
+auth        required                    pam_faillock.so preauth silent
+
+# pam_unix: attempt authentication; nodelay prevents timing oracle on failures
+# nullok removed — empty passwords are never permitted (CIS 5.3.1)
+auth        [success=1 default=ignore]  pam_unix.so nodelay
+
+# pam_faillock authfail: record failure and potentially lock account
+auth        [default=die]               pam_faillock.so authfail
+
+# pam_faillock authsucc: clear failure counter on success
+auth        sufficient                  pam_faillock.so authsucc
+
+# Fallback deny
+auth        required                    pam_deny.so

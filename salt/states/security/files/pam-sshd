@@ -1,0 +1,21 @@
+# /etc/pam.d/sshd — SSH daemon PAM configuration
+# Managed by Salt — do not edit manually
+# Based on Debian Bookworm default with security hardening applied
+
+# CIS 5.3.2 — Standard authentication stack (via common-auth)
+@include common-auth
+
+# CIS 1.7.4 — Static /etc/motd only; pam_motd dynamic motd suppressed
+# (motd content is managed by Salt via security/files/motd)
+session    optional     pam_motd.so  motd=/etc/motd
+
+# CIS 5.4.2 — Last login notification (via common-session)
+# pam_nologin: deny login if /etc/nologin exists (emergency lockout switch)
+account    required     pam_nologin.so
+
+# Standard account and session stacks
+@include common-account
+@include common-session
+
+# pam_env: read environment from /etc/environment and /etc/security/pam_env.conf
+session    required     pam_env.so user_readenv=0

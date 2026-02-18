@@ -37,8 +37,10 @@ base:
     - security.etc-passwd
     - security.banners
     - security.pki
+    - security.pam
 
     # Monitoring & logging
     - monitoring.rsyslog
     - monitoring.journald
     - monitoring.logrotate
+    - monitoring.alerts

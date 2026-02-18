@@ -1,0 +1,15 @@
+# CIS 5.3.1 — common-session
+# Managed by Salt — do not edit manually
+
+# pam_unix: standard session setup
+session     required                    pam_unix.so
+
+# pam_limits: enforce /etc/security/limits.d/ (core dumps, etc.) — CIS 1.5.3
+session     required                    pam_limits.so
+
+# CIS 7.1.9 / umask hardening — default umask 0027 for all sessions
+# Ensures new files are not world-readable (owner rw, group r, world none)
+session     optional                    pam_umask.so umask=0027
+
+# CIS 5.4.2 — pam_lastlog: display last login info, flag failed attempts
+session     optional                    pam_lastlog.so showfailed
