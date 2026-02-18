@@ -1,0 +1,58 @@
+#!/bin/bash
+# Scan the last hour of journal for critical kernel and system errors
+# Runs hourly via /etc/cron.hourly — managed by Salt
+
+HOSTNAME="$(hostname -f)"
+SINCE="1 hour ago"
+
+# Patterns that warrant immediate attention:
+#   Kernel oops, BUG, null pointer dereference, stack corruption
+#   Hardware errors (MCE, ECC, I/O errors)
+#   OOM killer firing
+#   Filesystem errors
+#   Segfaults in system processes
+PATTERNS=(
+    'Oops:'
+    'BUG:'
+    'kernel BUG'
+    'BUG: unable to handle'
+    'general protection fault'
+    'double fault'
+    'stack-protector:'
+    'Call Trace:'
+    'Kernel panic'
+    'Hardware Error'
+    'EDAC'
+    'Machine check'
+    'mce:'
+    'Out of memory:'
+    'Killed process'
+    'EXT4-fs error'
+    'XFS.*error'
+    'BTRFS.*error'
+    'I/O error'
+    'segfault.*in\s'
+)
+
+# Build grep pattern
+GREP_PATTERN="$(IFS='|'; echo "${PATTERNS[*]}")"
+
+MATCHES="$(journalctl --since "${SINCE}" --no-pager --quiet \
+    | grep -iE "${GREP_PATTERN}" \
+    | head -100)"
+
+if [ -n "${MATCHES}" ]; then
+    {
+        echo "Critical errors detected on ${HOSTNAME} in the last hour."
+        echo ""
+        echo "--- Journal matches ---"
+        echo "${MATCHES}"
+        echo ""
+        echo "--- System state ---"
+        echo "Uptime  : $(uptime)"
+        echo "Memory  : $(free -h | grep Mem)"
+        echo "Disk    : $(df -h / | tail -1)"
+        echo ""
+        echo "Run 'journalctl --since \"${SINCE}\"' for full context."
+    } | mail -s "[ALERT] ${HOSTNAME}: critical journal errors" root
+fi
