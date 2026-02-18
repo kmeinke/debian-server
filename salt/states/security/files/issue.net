@@ -1,0 +1,23 @@
+{% set company = salt['pillar.get']('contact:company', 'the owner') %}
+{% set email = salt['pillar.get']('contact:security_email', '') %}
+*******************************************************************************
+                        UNAUTHORIZED ACCESS PROHIBITED
+*******************************************************************************
+
+This system is the property of {{ company }}. Access is restricted to
+authorized users only. All activity on this system is monitored and logged.
+
+Unauthorized access or use is strictly prohibited and may result in civil
+and/or criminal prosecution.
+
+If you have discovered a security vulnerability in this system, please report
+it responsibly:
+{% if email %}
+  {{ email }}
+{% endif %}
+We ask that you:
+  - Do not exploit the vulnerability beyond what is needed to demonstrate it
+  - Do not access, modify, or delete data that is not yours
+  - Report your findings promptly and allow reasonable time to remediate
+
+*******************************************************************************

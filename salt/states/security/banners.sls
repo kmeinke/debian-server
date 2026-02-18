@@ -11,7 +11,8 @@
 
 /etc/issue.net:
   file.managed:
-    - contents: ''
+    - source: salt://security/files/issue.net
+    - template: jinja
     - mode: '0644'
     - user: root
     - group: root
@@ -21,3 +22,12 @@
     - source: salt://security/files/motd
     - template: jinja
     - mode: '0644'
+
+# Root-specific motd — displayed on root login via bashrc (mode 0640, not world-readable)
+/etc/motd.root:
+  file.managed:
+    - source: salt://security/files/motd.root
+    - template: jinja
+    - mode: '0640'
+    - user: root
+    - group: root

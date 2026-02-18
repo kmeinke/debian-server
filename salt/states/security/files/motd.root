@@ -1,0 +1,10 @@
+
+  !! YOU ARE LOGGED IN AS ROOT !!
+
+  This session should be used for emergency recovery only.
+
+  FQDN     : {{ grains['fqdn'] }}
+
+  Unlock a locked user : faillock --user <username> --reset
+  Check failed logins  : faillock --user <username>
+  Emergency lockout    : touch /etc/nologin   (remove to lift)

@@ -2,6 +2,7 @@ base:
   '*':
     - network
     - locale
+    - contact
     - users
     - ssh
     - mail

@@ -1,5 +1,5 @@
+  !! WELCOME !!
 
-  Hostname : {{ grains['host'] }}
   FQDN     : {{ grains['fqdn'] }}
   OS       : {{ grains['osfullname'] }} {{ grains['osrelease'] }}
   Kernel   : {{ grains['kernelrelease'] }}

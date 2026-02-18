@@ -12,6 +12,9 @@ shopt -s histappend
 # Prompt
 if [ "$(id -u)" -eq 0 ]; then
   PS1='\[\e[1;31m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]# '
+  [ -f /etc/motd.root ] && cat /etc/motd.root
+  echo "  Load     : $(cut -d' ' -f1-3 /proc/loadavg) (1/5/15 min)"
+  echo
 else
   PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]$ '
 fi
