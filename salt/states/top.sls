@@ -1,5 +1,8 @@
 base:
   '*':
+    # Preflight checks
+    - base.preflight
+
     # Base system
     - base.hostname
     - base.locale
