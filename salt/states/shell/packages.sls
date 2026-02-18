@@ -10,7 +10,6 @@ common_packages:
       - dnsutils
       - net-tools
       - lsof
-      - strace
       - ncdu
       - bash-completion
       - man-db

@@ -9,3 +9,4 @@ unwanted_client_packages:
       - telnet
       - ldap-utils
       - ftp
+      - strace
