@@ -13,7 +13,7 @@ cron_packages:
     - require:
       - pkg: cron_packages
 
-{% for dir in ['cron.d', 'cron.daily', 'cron.hourly', 'cron.monthly', 'cron.weekly'] %}
+{% for dir in ['cron.d', 'cron.daily', 'cron.hourly', 'cron.monthly', 'cron.weekly', 'cron.yearly'] %}
 /etc/{{ dir }}:
   file.directory:
     - mode: '0700'
