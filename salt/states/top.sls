@@ -8,6 +8,7 @@ base:
     - base.locale
     - base.ntp
     - base.network
+    - base.fstab
 
     # Access & users
     - access.ssh
@@ -38,6 +39,7 @@ base:
     - security.banners
     - security.pki
     - security.pam
+    - security.boot
 
     # Monitoring & logging
     - monitoring.rsyslog
