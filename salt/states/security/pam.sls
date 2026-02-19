@@ -52,6 +52,16 @@ libpam-runtime:
     - require:
       - pkg: libpam-runtime
 
+# CIS 5.3.3.4.3 — common-password: yescrypt hashing
+/etc/pam.d/common-password:
+  file.managed:
+    - source: salt://security/files/pam-common-password
+    - mode: '0644'
+    - user: root
+    - group: root
+    - require:
+      - pkg: libpam-runtime
+
 # CIS 1.7.4 — suppress PAM-driven dynamic motd in sshd (motd managed by Salt)
 /etc/pam.d/sshd:
   file.managed:
