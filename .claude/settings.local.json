@@ -4,7 +4,10 @@
       "mcp__acp__Bash",
       "mcp__acp__Write",
       "mcp__acp__Edit",
-      "WebFetch(domain:cisofy.com)"
+      "WebFetch(domain:cisofy.com)",
+      "Bash(test:*)",
+      "WebFetch(domain:www.pc-freak.net)",
+      "WebFetch(domain:packages.debian.org)"
     ]
   }
 }
