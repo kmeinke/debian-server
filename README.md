@@ -139,11 +139,9 @@ up both on exit.
 ## Testing with a VM (Hetzner or OCI)
 
 For higher-fidelity testing — real kernel, real sysctl namespace, real `/boot`,
-real systemd — use a cloud VM. Cost is negligible (~€0.006/hour on Hetzner; free
-tier available on OCI).
+real systemd — use a cloud VM.
 
-Docker is fast for iteration. VM testing is for final validation, especially for
-kernel hardening states (`security.sysctl`, `security.boot`).
+Docker is fast for iteration. VM testing is for final validation, especially for kernel hardening states (`security.sysctl`, `security.boot`).
 
 ### Hetzner
 
@@ -221,8 +219,8 @@ nftables, single `inet` table, all chains default-drop. Pillar: `defaults/firewa
 
 ## Security Hardening
 
-Based on [CIS Debian Linux 12 Benchmark v1.1.0](https://www.cisecurity.org/benchmark/debian_linux)
-(2024-09-26) and [ANSSI BP-028](https://www.ssi.gouv.fr/guide/recommandations-de-securite-relatives-a-un-systeme-gnulinux/).
+Based on [CIS Debian Linux 13 Benchmark v1.0.0](https://www.cisecurity.org/benchmark/debian_linux)
+and [ANSSI BP-028](https://www.ssi.gouv.fr/guide/recommandations-de-securite-relatives-a-un-systeme-gnulinux/).
 
 See [compliance.md](compliance.md) for a full control-by-control status.
 
