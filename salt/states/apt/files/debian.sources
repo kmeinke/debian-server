@@ -1,5 +1,5 @@
 {% set codename = salt['pillar.get']('apt:codename', grains['oscodename']) %}
-{% set mirror = salt['pillar.get']('apt:mirror', 'http://deb.debian.org/debian') %}
+{% set mirror = salt['pillar.get']('apt:mirror', 'https://deb.debian.org/debian') %}
 Types: deb
 URIs: {{ mirror }}
 Suites: {{ codename }} {{ codename }}-updates
@@ -7,7 +7,7 @@ Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 
 Types: deb
-URIs: http://security.debian.org/debian-security
+URIs: https://security.debian.org/debian-security
 Suites: {{ codename }}-security
 Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg

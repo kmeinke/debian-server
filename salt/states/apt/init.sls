@@ -15,6 +15,14 @@ remove_old_sources_list:
         APT::Install-Suggests "false";
     - mode: '0644'
 
+# Enforce HTTPS for all APT transport
+/etc/apt/apt.conf.d/02https-only:
+  file.managed:
+    - contents: |
+        Acquire::AllowInsecureRepositories "false";
+        Acquire::AllowDowngradeToInsecureRepositories "false";
+    - mode: '0644'
+
 # CIS 1.2.1.3 — APT GPG key files (0644, root:root)
 /etc/apt/trusted.gpg.d:
   file.directory:
@@ -25,7 +33,6 @@ remove_old_sources_list:
     - recurse:
       - user
       - group
-      - mode
 
 # CIS 1.2.1.8 — APT sources directory (0755, root:root)
 /etc/apt/sources.list.d:
@@ -37,7 +44,6 @@ remove_old_sources_list:
     - recurse:
       - user
       - group
-      - mode
 
 # CIS 1.2.1.5 — APT auth credentials (0755 dir, 0640 files)
 /etc/apt/auth.conf.d:
@@ -50,7 +56,6 @@ remove_old_sources_list:
     - recurse:
       - user
       - group
-      - mode
 
 apt_update:
   cmd.wait:

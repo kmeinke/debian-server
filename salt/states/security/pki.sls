@@ -8,7 +8,6 @@
     - recurse:
       - user
       - group
-      - mode
 
 # CA trust store — enforce root ownership and read-only
 /etc/ca-certificates.conf:
@@ -27,7 +26,6 @@
     - recurse:
       - user
       - group
-      - mode
 
 /etc/ssl/certs:
   file.directory:
@@ -38,7 +36,6 @@
     - recurse:
       - user
       - group
-      - mode
 
 # SSL private key directory (0700, root:root)
 /etc/ssl/private:

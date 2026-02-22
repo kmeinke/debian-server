@@ -31,6 +31,7 @@ boot_perms_{{ pattern }}:
           -exec chown root:root {} + \
           -exec chmod 0600 {} +
     - onlyif: find /boot -maxdepth 1 -name '{{ pattern }}' | grep -q .
+    - unless: test -z "$(find /boot -maxdepth 1 -name '{{ pattern }}' \( ! -user root -o ! -group root -o ! -perm 0600 \) 2>/dev/null)"
 {% endfor %}
 
 # config-* left at 0644 (kernel build config, low sensitivity)
@@ -41,4 +42,5 @@ boot_perms_config:
           -exec chown root:root {} + \
           -exec chmod 0644 {} +
     - onlyif: find /boot -maxdepth 1 -name 'config-*' | grep -q .
+    - unless: test -z "$(find /boot -maxdepth 1 -name 'config-*' \( ! -user root -o ! -group root -o ! -perm 0644 \) 2>/dev/null)"
 

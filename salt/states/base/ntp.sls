@@ -2,7 +2,7 @@ systemd-timesyncd:
   pkg.installed: []
   service.running:
     - enable: True
-    - onlyif: test -d /run/systemd/system
+    - onlyif: test -d /run/systemd/system && ! systemd-detect-virt --container -q
 
 /etc/systemd/timesyncd.conf:
   file.managed:
