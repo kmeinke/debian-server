@@ -1,6 +1,6 @@
 # server-salt
 
-SaltStack configuration for a Debian Bookworm server, managed via salt-ssh. Tested via Docker.
+SaltStack configuration for a some what secure Debian Bookworm server, managed via salt-ssh.
 
 ---
 
@@ -296,6 +296,8 @@ upstream port to `firewall:egress:tcp_ports`.
 
 Based on [CIS Debian Linux 12 Benchmark v1.1.0](https://www.cisecurity.org/benchmark/debian_linux)
 (2024-09-26) and [ANSSI BP-028](https://www.ssi.gouv.fr/guide/recommandations-de-securite-relatives-a-un-systeme-gnulinux/).
+
+See [compliance.md](compliance.md) for a full control-by-control status.
 
 ---
 
