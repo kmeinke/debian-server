@@ -7,7 +7,16 @@
       "WebFetch(domain:cisofy.com)",
       "Bash(test:*)",
       "WebFetch(domain:www.pc-freak.net)",
-      "WebFetch(domain:packages.debian.org)"
+      "WebFetch(domain:packages.debian.org)",
+      "Bash(./scripts/test-docker.py:*)",
+      "Bash(chmod:*)",
+      "Bash(python3:*)",
+      "Bash(nc:*)",
+      "Bash(echo:*)",
+      "Bash(timeout 5 bash -c 'echo > /dev/tcp/89.168.82.242/22')",
+      "Bash(ssh:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
