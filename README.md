@@ -52,10 +52,18 @@ states/
 │   ├── sysctl.sls                   Kernel hardening (sysctl.d + modprobe blacklist)
 │   ├── boot.sls                     /boot permissions (CIS 1.4.2, ANSSI R29)
 │   ├── pam.sls                      PAM: faillock, access control, umask, lastlog, yescrypt
+│   ├── coredump.sls                 Disable core dumps
+│   ├── cron.sls                     Restrict cron access
+│   ├── packages.sls                 Remove insecure/unnecessary packages
 │   ├── etc-passwd.sls               Auth file permissions, remove unused users
 │   ├── banners.sls                  Login banners: issue.net, motd, motd.root
 │   ├── pki.sls                      Keyring, CA trust store, SSL permissions
-│   └── files/                       Config templates 
+│   └── files/                       Config templates
+│
+├── www/                             Web services
+│   └── nginx/
+│       ├── init.sls                 nginx — hardened base config, catch-all vhost
+│       └── files/                   nginx.conf, default-site.conf templates
 │
 └── monitoring/                      Logging and alerting
     ├── rsyslog.sls                  Purge rsyslog (journald-only)
@@ -78,7 +86,7 @@ pillar/
 │   ├── users.sls        User accounts, groups, SSH public keys, sudo config
 │   ├── ssh.sls          SSH port, auth settings, allowed users
 │   ├── mail.sls         Smarthost relay, root alias
-│   ├── apt.sls          Mirror, codename override
+│   ├── apt.sls          Codename override, unattended-upgrades schedule
 │   ├── firewall.sls     Allowed ingress TCP ports, egress TCP/UDP ports
 │   ├── kernel.sls       Kernel flags: docker_host, ipv6_disable, perf_event_paranoid, sysrq, coredump
 │   ├── fail2ban.sls     Ban time, find time, max retries
