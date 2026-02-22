@@ -1,2 +1,6 @@
 salt/pillar/secrets/*.sls
+salt/roster
 .salt/
+.docker.env
+.hetzner.env
+.oci.env

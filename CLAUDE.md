@@ -17,9 +17,15 @@ salt/states/          Salt state definitions, organized by function
 salt/states/*/files/  Config file templates managed by states
 salt/pillar/          Pillar data (configuration values)
 salt/pillar/secrets/  SOPS-encrypted secrets (*.sls.enc)
-salt/master           salt-ssh config (file_roots, pillar_roots)
-salt/roster           salt-ssh target host definitions
-scripts/test.py       Docker-based test runner (salt-ssh)
+salt/master              salt-ssh master config (shared by all runners)
+salt/roster              generated at runtime by test runners, gitignored
+scripts/test-docker.py   Docker-based test runner (salt-ssh)
+scripts/test-hetzner.py  Hetzner VM test runner (salt-ssh)
+scripts/test-oci.py      Oracle OCI VM test runner (salt-ssh)
+scripts/vm-userdata.yaml Cloud-init bootstrap for VM admin user
+.docker.env              Docker config (gitignored, see README for template)
+.hetzner.env             Hetzner config (gitignored, see README for template)
+.oci.env                 OCI config (gitignored, see README for template)
 scripts/sops.py       SOPS helper (import/export/edit/rotate)
 reference/            CIS benchmarks, ANSSI guides (PDFs)
 ```
@@ -38,14 +44,30 @@ reference/            CIS benchmarks, ANSSI guides (PDFs)
 Docker container boots with systemd as PID 1 (privileged mode), running sshd. salt-ssh connects from WSL to apply states.
 
 ```bash
-./scripts/test.py build   # remove container and rebuild image
-./scripts/test.py shell   # start container, open shell
-./scripts/test.py ssh     # start container, ssh into it as admin
-./scripts/test.py test    # start container, run highstate via salt-ssh
-./scripts/test.py clean   # remove container, image, and volumes
+./scripts/test-docker.py build   # remove container and rebuild image
+./scripts/test-docker.py shell   # start container, open shell
+./scripts/test-docker.py ssh     # start container, ssh into it as admin
+./scripts/test-docker.py test    # start container, run highstate via salt-ssh
+./scripts/test-docker.py clean   # remove container, image, and volumes
 ```
 
 Container auto-starts and auto-builds if not already running. salt-ssh connects on port 2222 as admin user with sudo.
+
+For higher-fidelity testing against a real VM (requires `.hetzner.env` or `.oci.env`):
+
+```bash
+./scripts/test-hetzner.py create   # create Hetzner VM, wait for SSH
+./scripts/test-hetzner.py test     # run highstate via salt-ssh (creates VM if needed)
+./scripts/test-hetzner.py ssh      # ssh into VM as admin
+./scripts/test-hetzner.py delete   # destroy VM
+
+./scripts/test-oci.py create    # create OCI VM
+./scripts/test-oci.py test      # run highstate via salt-ssh
+./scripts/test-oci.py ssh       # ssh into VM as admin
+./scripts/test-oci.py delete    # terminate VM
+```
+
+The roster (`salt/roster`) is written dynamically at runtime by each test runner and gitignored.
 
 ## Authentication Policy
 

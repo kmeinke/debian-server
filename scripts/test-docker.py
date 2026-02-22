@@ -10,11 +10,13 @@ import time
 from pathlib import Path
 
 CONTAINER = "server-salt"
-REPO_DIR = Path("/mnt/c/Code/server-salt")
+REPO_DIR = Path(__file__).resolve().parent.parent
 SECRETS_DIR = REPO_DIR / "salt" / "pillar" / "secrets"
+ROSTER = REPO_DIR / "salt" / "roster"
+ENV_FILE = REPO_DIR / ".docker.env"
 
 USAGE = """\
-Usage: test.py [command]
+Usage: test-docker.py [command]
 
 Commands:
   build   Remove container and rebuild image
@@ -23,6 +25,23 @@ Commands:
   test    Start container, run highstate via salt-ssh (default)
   clean   Remove container and image\
 """
+
+
+def load_env():
+    """Load configuration from .docker.env."""
+    if not ENV_FILE.exists():
+        sys.exit(f"Missing config file: {ENV_FILE}")
+    env = {}
+    for line in ENV_FILE.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            key, _, value = line.partition("=")
+            env[key.strip()] = value.strip()
+    required = ["DOCKER_SSH_PORT", "ADMIN_SSH_KEY"]
+    missing = [k for k in required if not env.get(k)]
+    if missing:
+        sys.exit(f"Missing required values in {ENV_FILE}: {', '.join(missing)}")
+    return env
 
 
 def run(cmd, **kwargs):
@@ -42,13 +61,13 @@ def is_running():
     return result.returncode == 0 and "true" in result.stdout
 
 
-def wait_for_sshd(host="localhost", port=2222, timeout=30):
+def wait_for_sshd(port, timeout=30):
     """Wait until sshd is accepting connections."""
     print("Waiting for sshd...", end="", flush=True)
     start = time.time()
     while time.time() - start < timeout:
         try:
-            with socket.create_connection((host, port), timeout=1):
+            with socket.create_connection(("localhost", port), timeout=1):
                 print(" ready.")
                 return
         except OSError:
@@ -57,11 +76,30 @@ def wait_for_sshd(host="localhost", port=2222, timeout=30):
     sys.exit(f"\nsshd not ready after {timeout}s")
 
 
-def ensure_running():
+def ensure_running(env):
     """Start the container if not already running."""
     if not is_running():
         run(["docker", "compose", "up", "-d", "--build"])
-        wait_for_sshd()
+        wait_for_sshd(int(env["DOCKER_SSH_PORT"]))
+
+
+def write_roster(env):
+    """Write the salt-ssh roster for the Docker container."""
+    key = str(Path(env["ADMIN_SSH_KEY"]).expanduser())
+    ROSTER.write_text(
+        f"server:\n"
+        f"  host: localhost\n"
+        f"  port: {env['DOCKER_SSH_PORT']}\n"
+        f"  user: admin\n"
+        f"  sudo: True\n"
+        f"  priv: {key}\n"
+    )
+
+
+def cleanup_roster():
+    """Remove the generated roster file."""
+    if ROSTER.exists():
+        ROSTER.unlink()
 
 
 def decrypt_secrets():
@@ -82,6 +120,7 @@ def cleanup_secrets():
 
 
 atexit.register(cleanup_secrets)
+atexit.register(cleanup_roster)
 
 
 def cmd_build():
@@ -89,8 +128,8 @@ def cmd_build():
     run(["docker", "compose", "build"])
 
 
-def cmd_shell():
-    ensure_running()
+def cmd_shell(env):
+    ensure_running(env)
     run(["docker", "exec", "-it", CONTAINER, "bash"])
 
 
@@ -128,36 +167,29 @@ def run_with_spinner(cmd):
         sys.exit(result.returncode)
 
 
-def cmd_test():
-    ensure_running()
+def cmd_test(env):
+    ensure_running(env)
+    write_roster(env)
     decrypt_secrets()
-    run_with_spinner(
-        [
-            "salt-ssh",
-            "-c",
-            str(REPO_DIR / "salt"),
-            "--ignore-host-keys",
-            "server",
-            "state.highstate",
-        ]
-    )
+    run_with_spinner([
+        "salt-ssh",
+        "-c", str(REPO_DIR / "salt"),
+        "--ignore-host-keys",
+        "server",
+        "state.highstate",
+    ])
 
 
-def cmd_ssh():
-    ensure_running()
-    key = Path.home() / ".ssh" / "admin_ed25519"
-    run(
-        [
-            "ssh",
-            "-p",
-            "2222",
-            "-i",
-            str(key),
-            "-o",
-            "StrictHostKeyChecking=no",
-            "admin@localhost",
-        ]
-    )
+def cmd_ssh(env):
+    ensure_running(env)
+    key = str(Path(env["ADMIN_SSH_KEY"]).expanduser())
+    run([
+        "ssh",
+        "-p", env["DOCKER_SSH_PORT"],
+        "-i", key,
+        "-o", "StrictHostKeyChecking=no",
+        "admin@localhost",
+    ])
 
 
 def cmd_clean():
@@ -165,12 +197,14 @@ def cmd_clean():
 
 
 def main():
+    env = load_env()
+
     commands = {
-        "build": cmd_build,
-        "shell": cmd_shell,
-        "test": cmd_test,
-        "clean": cmd_clean,
-        "ssh": cmd_ssh,
+        "build": lambda: cmd_build(),
+        "shell": lambda: cmd_shell(env),
+        "test": lambda: cmd_test(env),
+        "clean": lambda: cmd_clean(),
+        "ssh": lambda: cmd_ssh(env),
     }
 
     cmd = sys.argv[1] if len(sys.argv) > 1 else "test"

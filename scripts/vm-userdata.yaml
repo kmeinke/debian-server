@@ -1,0 +1,22 @@
+#cloud-config
+
+# Bootstrap admin user for salt-ssh access.
+# Mirrors the Dockerfile setup: SSH key auth only, NOPASSWD sudo.
+
+packages:
+  - python3
+  - sudo
+
+users:
+  - name: admin
+    groups: [sudo]
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFVU9t1TkiOP9hbOSBe4SY+Itw/ChNqRXHb1HT2OcIwX admin
+
+write_files:
+  - path: /etc/sudoers.d/admin
+    content: "admin ALL=(ALL) NOPASSWD: ALL\n"
+    permissions: '0440'
+    owner: root:root

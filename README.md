@@ -54,19 +54,15 @@ states/
 │   ├── etc-passwd.sls               Auth file permissions, remove unused users
 │   ├── banners.sls                  Login banners: issue.net, motd, motd.root
 │   ├── pki.sls                      Keyring, CA trust store, SSL permissions
-│   └── files/                       nftables.conf, faillock.conf, access.conf,
-│                                    pam-*, 99-hardening.conf, modprobe-blacklist.conf,
-│                                    motd, motd.root, issue.net
+│   └── files/                       Config templates 
 │
 └── monitoring/                      Logging and alerting
     ├── rsyslog.sls                  Purge rsyslog (journald-only)
     ├── journald.sls                 Harden systemd-journald (CIS 6.1)
     ├── logrotate.sls                Log rotation
     ├── alerts.sls                   Hourly journal alert cron
-    └── files/
-        ├── 99-journald.conf         journald hardening config (Jinja)
-        ├── logrotate.conf           logrotate base config
-        └── journal-alert            Cron script: scan journal for critical events
+    └── files/                       Config templates
+
 ```
 
 ### Pillar (`salt/pillar/`)
@@ -99,19 +95,94 @@ The container boots with systemd as PID 1 (privileged mode), allowing full testi
 of services, timers, and hostname.
 
 Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) and
-`salt-ssh` installed in WSL.
+`salt-ssh` installed in WSL. Create `.docker.env` (gitignored):
 
 ```bash
-./scripts/test.py build   # Remove container and rebuild image
-./scripts/test.py shell   # Start container, open shell
-./scripts/test.py ssh     # Start container, SSH into it as admin
-./scripts/test.py test    # Start container, run highstate via salt-ssh
-./scripts/test.py clean   # Remove container, image, and volumes
+cat > .docker.env <<EOF
+DOCKER_SSH_PORT=2222
+ADMIN_SSH_KEY=~/.ssh/admin_ed25519
+EOF
 ```
 
-The container auto-starts and auto-builds if not already running.
-The test command decrypts secrets before applying states, then cleans up
-decrypted files automatically on exit.
+```bash
+./scripts/test-docker.py build   # Remove container and rebuild image
+./scripts/test-docker.py shell   # Start container, open shell
+./scripts/test-docker.py ssh     # Start container, SSH into it as admin
+./scripts/test-docker.py test    # Start container, run highstate via salt-ssh
+./scripts/test-docker.py clean   # Remove container, image, and volumes
+```
+
+The container auto-starts and auto-builds if not already running. Each test runner
+writes `salt/roster` dynamically, decrypts secrets, runs the highstate, and cleans
+up both on exit.
+
+---
+
+## Testing with a VM (Hetzner or OCI)
+
+For higher-fidelity testing — real kernel, real sysctl namespace, real `/boot`,
+real systemd — use a cloud VM. Cost is negligible (~€0.006/hour on Hetzner; free
+tier available on OCI).
+
+Docker is fast for iteration. VM testing is for final validation, especially for
+kernel hardening states (`security.sysctl`, `security.boot`).
+
+### Hetzner
+
+```bash
+# One-time: install hcloud CLI
+sudo apt-get install hcloud-cli
+
+# Create .hetzner.env (gitignored):
+cat > .hetzner.env <<EOF
+HCLOUD_TOKEN=your-api-token
+HETZNER_SERVER_TYPE=cx22
+HETZNER_LOCATION=fsn1
+ADMIN_SSH_KEY=~/.ssh/admin_ed25519
+EOF
+
+# Optional: register the admin SSH key in your Hetzner project
+hcloud ssh-key create --name admin --public-key-from-file ~/.ssh/admin_ed25519.pub
+```
+
+```bash
+./scripts/test-hetzner.py create   # Create VM, wait for SSH (30–60s)
+./scripts/test-hetzner.py test     # Run highstate (creates VM if needed)
+./scripts/test-hetzner.py ssh      # SSH into VM as admin
+./scripts/test-hetzner.py delete   # Destroy VM
+./scripts/test-hetzner.py ip       # Print current VM IP
+```
+
+### Oracle OCI
+
+```bash
+# One-time: install OCI CLI and configure ~/.oci/config
+# Then create .oci.env (gitignored):
+cat > .oci.env <<EOF
+OCI_COMPARTMENT_OCID=ocid1.tenancy.oc1...<your-ocid>
+OCI_IMAGE_OCID=ocid1.image.oc1...<your-image-ocid>
+OCI_SUBNET_OCID=ocid1.subnet.oc1...<your-subnet-ocid>
+OCI_BUCKET_NAME=debian-images
+OCI_SHAPE=VM.Standard.E2.1.Micro
+ADMIN_SSH_KEY=~/.ssh/admin_ed25519
+EOF
+```
+
+```bash
+./scripts/test-oci.py auth           # Verify OCI credentials
+./scripts/test-oci.py upload-image   # Import Debian genericcloud image (once)
+./scripts/test-oci.py create         # Create VM, wait for SSH
+./scripts/test-oci.py test           # Run highstate (creates VM if needed)
+./scripts/test-oci.py ssh            # SSH into VM as admin
+./scripts/test-oci.py delete         # Terminate VM
+```
+
+Both runners write a temporary roster with the VM's IP, decrypt secrets, run the
+highstate, and clean up on exit. The VM is **not** destroyed automatically — run
+`delete` when done.
+
+**Firewall note:** `security.firewall` applies nftables with live egress default-drop.
+On a VM this is immediately enforced. If locked out, use the provider's web console.
 
 ---
 
@@ -216,7 +287,7 @@ secrets to be committed to the repository safely — only holders of the private
 key can decrypt them.
 
 Encrypted files live in `salt/pillar/secrets/*.sls.enc` (committed to git). Before
-salt-ssh runs, `test.py` decrypts them to `*.sls` (gitignored). After salt-ssh
+salt-ssh runs, the test runner decrypts them to `*.sls` (gitignored). After salt-ssh
 finishes, decrypted files are deleted automatically.
 
 ```bash
