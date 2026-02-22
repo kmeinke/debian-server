@@ -8,7 +8,6 @@ base:
     - base.locale
     - base.ntp
     - base.network
-    - base.fstab
 
     # Access & users
     - access.ssh

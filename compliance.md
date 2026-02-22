@@ -144,7 +144,7 @@ sacrificing operational usability or maintainability. Its a single webserver, no
 
 | ID | Topic | Status | Comment |
 |----|-------|--------|---------|
-| 1.7.1 | GDM is removed | N | Server has no GUI; GDM is not installed — this is the intended state |
+| 1.7.1 | GDM is removed | Y | gdm3, xserver-xorg, task-gnome-desktop purged via `security/packages.sls` |
 | 1.7.2 | GDM login banner configured | N | No GDM — not applicable |
 | 1.7.3 | GDM disable-user-list enabled | N | No GDM — not applicable |
 | 1.7.4 | GDM screen locks when user is idle | N | No GDM — not applicable |
@@ -564,7 +564,7 @@ sacrificing operational usability or maintainability. Its a single webserver, no
 | R25 | MIEH | Compile options for x86_64 architectures | N | Distribution kernel used |
 | R26 | MIEH | Compile options for ARM architectures | N | x86_64 system; not applicable |
 | R27 | MIEH | Compile options for ARM 64-bit architectures | N | x86_64 system; not applicable |
-| R28 | MI | Typical partitioning | Y | `/boot` mount options nosuid,nodev,noexec enforced via `base/fstab.sls` (when /boot is a separate partition) |
+| R28 | MI | Typical partitioning | N | Partition layout managed at provisioning time (cloud-init / disk image), not by Salt. Genericcloud image has no separate `/boot` — only `/` and `/boot/efi`. fstab is out of scope for Salt. |
 | R29 | MIE | Access restrictions on /boot | Y | `/boot` 0700, `/boot/grub` 0700, kernel/initrd files 0600 root:root via `security/boot.sls` |
 | R30 | M | Removing unused user accounts | Y | Default system accounts (sync, games, lp, news, proxy, list, irc) removed by `security/etc-passwd.sls` |
 | R31 | M | User password strength | Y | Users have no passwords (locked); SSH key authentication only. Root password policy is organisational |
@@ -589,8 +589,8 @@ sacrificing operational usability or maintainability. Its a single webserver, no
 | R50 | MI | Limiting access to sensitive files and directories | Y | /etc/shadow, /etc/gshadow (root:shadow 0640), /etc/passwd, /etc/group (0644), /etc/security/opasswd (0600), SSL private keys (0700) all managed |
 | R51 | MIE | Changing secrets and access rights immediately | Y | SSH keys managed via pillar; no default passwords left in place; secrets via SOPS |
 | R52 | MI | Securing access to named sockets and pipes | O | Not explicitly managed; individual services use package defaults |
-| R53 | M | Avoiding files without known owner/group | O | Not audited by Salt; periodic manual review needed |
-| R54 | M | Setting sticky bit on writable directories | O | /tmp sticky bit is set by default on Debian; other directories not audited |
+| R53 | M | Avoiding files without known owner/group | N | Not managed by Salt; ownerless files are a runtime/audit concern, not a configuration management concern |
+| R54 | M | Setting sticky bit on writable directories | N | /tmp sticky bit is set by default on Debian; auditing all world-writable directories is a runtime concern, not managed by Salt |
 | R55 | MI | Dedicating temporary directories to users | O | pam_mktemp / pam_namespace not configured |
 | R56 | M | Avoiding setuid/setgid executables | O | Not audited; package-installed setuid binaries not reviewed |
 | R57 | MIE | Minimising setuid root and setgid root executables | O | Not audited; periodic manual review needed |
