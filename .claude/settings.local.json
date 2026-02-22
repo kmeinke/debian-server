@@ -16,7 +16,9 @@
       "Bash(timeout 5 bash -c 'echo > /dev/tcp/89.168.82.242/22')",
       "Bash(ssh:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(wsl -d Debian -- bash -c:*)",
+      "Bash(wsl -d Debian -- python3:*)"
     ]
   }
 }

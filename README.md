@@ -10,7 +10,9 @@ SaltStack configuration for a Debian Bookworm server, managed via salt-ssh. Test
 
 ```
 states/
-├── top.sls                          State top file — assigns states to minions
+├── top.sls                          State top file — '*': [secure_linux]
+├── secure_linux/
+│   └── init.sls                     Umbrella state — static include list of all hardening states
 │
 ├── base/                            Base system configuration
 │   ├── preflight.sls                Fail-fast check: secrets pillar must be loaded
@@ -18,7 +20,6 @@ states/
 │   ├── locale.sls                   Locale and timezone
 │   ├── network.sls                  DNS resolvers (/etc/resolv.conf)
 │   ├── ntp.sls                      Time sync via systemd-timesyncd
-│   ├── fstab.sls                    Mount hardening (nosuid,nodev,noexec on /boot)
 │   └── files/                       Config templates for base states
 │
 ├── access/                          Access control
@@ -69,20 +70,28 @@ states/
 
 ```
 pillar/
-├── top.sls              Pillar top file
-├── network.sls          Hostname, domain, DNS servers, NTP
-├── locale.sls           Timezone, system locale
-├── contact.sls          Company name and security contact email
-├── users.sls            User accounts, groups, SSH public keys, sudo config
-├── ssh.sls              SSH port, auth settings, allowed users
-├── mail.sls             Smarthost relay, root alias
-├── apt.sls              Mirror, codename override
-├── firewall.sls         Allowed ingress TCP ports, egress TCP/UDP ports
-├── kernel.sls           Kernel flags: docker_host, ipv6_disable, perf_event_paranoid, sysrq, coredump
-├── fail2ban.sls         Ban time, find time, max retries
-├── logging.sls          journald rotation limits
+├── top.sls              Pillar top file — defaults/* for all hosts, hosts/* per group
+├── defaults/            Base values applied to all hosts
+│   ├── network.sls      Hostname, domain, DNS servers, NTP
+│   ├── locale.sls       Timezone, system locale
+│   ├── contact.sls      Company name and security contact email
+│   ├── users.sls        User accounts, groups, SSH public keys, sudo config
+│   ├── ssh.sls          SSH port, auth settings, allowed users
+│   ├── mail.sls         Smarthost relay, root alias
+│   ├── apt.sls          Mirror, codename override
+│   ├── firewall.sls     Allowed ingress TCP ports, egress TCP/UDP ports
+│   ├── kernel.sls       Kernel flags: docker_host, ipv6_disable, perf_event_paranoid, sysrq, coredump
+│   ├── fail2ban.sls     Ban time, find time, max retries
+│   └── logging.sls      journald rotation limits
+├── hosts/               Per-host-group overrides (deep-merged over defaults)
+│   ├── test_docker.sls
+│   ├── test_hetzner.sls
+│   └── test_oci.sls
 └── secrets/
-    └── server.sls.enc   SOPS-encrypted secrets (SMTP credentials, SSH keys)
+    └── hosts/
+        ├── test_docker.sls.enc    SOPS-encrypted secrets (SMTP credentials, SSH keys)
+        ├── test_hetzner.sls.enc
+        └── test_oci.sls.enc
 ```
 
 ---
@@ -108,6 +117,7 @@ EOF
 ./scripts/test-docker.py build   # Remove container and rebuild image
 ./scripts/test-docker.py shell   # Start container, open shell
 ./scripts/test-docker.py ssh     # Start container, SSH into it as admin
+./scripts/test-docker.py check   # Start container, apply single state (fast smoke test)
 ./scripts/test-docker.py test    # Start container, run highstate via salt-ssh
 ./scripts/test-docker.py clean   # Remove container, image, and volumes
 ```
@@ -147,6 +157,7 @@ hcloud ssh-key create --name admin --public-key-from-file ~/.ssh/admin_ed25519.p
 
 ```bash
 ./scripts/test-hetzner.py create   # Create VM, wait for SSH (30–60s)
+./scripts/test-hetzner.py check    # Apply single state (fast smoke test, creates VM if needed)
 ./scripts/test-hetzner.py test     # Run highstate (creates VM if needed)
 ./scripts/test-hetzner.py ssh      # SSH into VM as admin
 ./scripts/test-hetzner.py delete   # Destroy VM
@@ -172,6 +183,7 @@ EOF
 ./scripts/test-oci.py auth           # Verify OCI credentials
 ./scripts/test-oci.py upload-image   # Import Debian genericcloud image (once)
 ./scripts/test-oci.py create         # Create VM, wait for SSH
+./scripts/test-oci.py check          # Apply single state (fast smoke test, creates VM if needed)
 ./scripts/test-oci.py test           # Run highstate (creates VM if needed)
 ./scripts/test-oci.py ssh            # SSH into VM as admin
 ./scripts/test-oci.py delete         # Terminate VM
@@ -286,22 +298,22 @@ Secrets are encrypted at rest using [SOPS](https://github.com/getsops/sops) with
 secrets to be committed to the repository safely — only holders of the private age
 key can decrypt them.
 
-Encrypted files live in `salt/pillar/secrets/*.sls.enc` (committed to git). Before
-salt-ssh runs, the test runner decrypts them to `*.sls` (gitignored). After salt-ssh
-finishes, decrypted files are deleted automatically.
+Encrypted files live in `salt/pillar/secrets/hosts/<group>.sls.enc` (committed to git).
+Before salt-ssh runs, the test runner decrypts them to `*.sls` (gitignored). After
+salt-ssh finishes, decrypted files are deleted automatically.
 
 ```bash
 # Edit secrets (decrypts in $EDITOR, re-encrypts on save)
-scripts/sops.py edit salt/pillar/secrets/server.sls.enc
+scripts/sops.py edit salt/pillar/secrets/hosts/test_docker.sls.enc
 
 # Import a binary file (e.g. SSH key) as base64
-scripts/sops.py import salt/pillar/secrets/server.sls.enc ssh.admin_ed25519 ~/.ssh/id_ed25519
+scripts/sops.py import salt/pillar/secrets/hosts/test_docker.sls.enc ssh.admin_ed25519 ~/.ssh/id_ed25519
 
 # Export a base64 value back to a file
-scripts/sops.py export salt/pillar/secrets/server.sls.enc ssh.admin_ed25519 /tmp/key
+scripts/sops.py export salt/pillar/secrets/hosts/test_docker.sls.enc ssh.admin_ed25519 /tmp/key
 
 # Rotate data encryption keys
-scripts/sops.py rotate salt/pillar/secrets/server.sls.enc
+scripts/sops.py rotate salt/pillar/secrets/hosts/test_docker.sls.enc
 ```
 
 Secrets are available in states as regular pillar data:

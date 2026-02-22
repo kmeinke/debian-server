@@ -1,4 +1,4 @@
-salt/pillar/secrets/*.sls
+salt/pillar/secrets/**/*.sls
 salt/roster
 .salt/
 .docker.env

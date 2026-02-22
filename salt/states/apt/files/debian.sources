@@ -1,7 +1,6 @@
 {% set codename = salt['pillar.get']('apt:codename', grains['oscodename']) %}
-{% set mirror = salt['pillar.get']('apt:mirror', 'https://deb.debian.org/debian') %}
 Types: deb
-URIs: {{ mirror }}
+URIs: https://deb.debian.org/debian
 Suites: {{ codename }} {{ codename }}-updates
 Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg

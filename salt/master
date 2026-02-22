@@ -13,3 +13,6 @@ pillar_roots:
 roster_file: /mnt/c/Code/server-salt/salt/roster
 
 state_output: changes
+
+ssh_wipe: False
+ssh_compression: True
