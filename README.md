@@ -208,87 +208,14 @@ On a VM this is immediately enforced. If locked out, use the provider's web cons
 
 ## Firewall
 
-The firewall is managed by `security.firewall` using **nftables** with a single `inet`
-table covering both IPv4 and IPv6. All chains default to **drop** — everything must be
-explicitly permitted.
+nftables, single `inet` table, all chains default-drop. Pillar: `defaults/firewall.sls`.
 
-Configuration is pillar-driven via `salt/pillar/firewall.sls`.
-
-### Ingress
-
-Only the following inbound traffic is accepted:
-
-- **Loopback** — unrestricted
-- **Established/related** — stateful tracking for existing connections
-- **ICMP / ICMPv6** — operational types only: echo, destination-unreachable, time-exceeded, parameter-problem. ICMPv6 additionally includes NDP types required for IPv6 neighbour discovery (RFC 4861)
-- **TCP ports** — defined in `firewall:tcp_ports` pillar (default: 22, 80, 443)
-- **SSH rate limit** — new SSH connections are additionally rate-limited to 4/minute
-
-Everything else is logged (`nftables-drop:`) and dropped.
-
-To open additional inbound ports, add them to the pillar:
-
-```yaml
-firewall:
-  tcp_ports:
-    - 22
-    - 80
-    - 443
-    - 8443   # example: additional HTTPS port
-```
-
-### Egress
-
-The output chain is **default-drop**. Only explicitly listed destinations are allowed
-outbound. This limits the damage from a compromised process — it cannot freely beacon,
-exfiltrate, or download payloads.
-
-Permitted egress, configured in `firewall:egress`:
-
-| Protocol | Port | Purpose |
-|---|---|---|
-| TCP | 53 | DNS |
-| TCP | 443 | APT updates, HTTPS |
-| TCP | 587 | SMTP submission (STARTTLS) |
-| TCP | 465 | SMTP submission (implicit TLS) |
-| UDP | 53 | DNS |
-| UDP | 123 | NTP |
-
-Everything else is logged (`nftables-drop-out:`) and dropped.
-
-To add egress for an upstream API or service:
-
-```yaml
-firewall:
-  egress:
-    tcp_ports:
-      - 53
-      - 443
-      - 587
-      - 465
-      - 5432   # example: external PostgreSQL
-```
-
-**Limitations of port-based egress filtering:**
-
-Port numbers are convention, not enforcement. A determined attacker can tunnel C2
-traffic over port 443. Port-based egress is effective against unsophisticated malware
-using default ports, accidental misconfiguration, and limiting blast radius by blocking
-common reverse shell ports. It is **not** effective against HTTPS-based C2 or DNS
-tunneling. AppArmor (per-process network restrictions) and auditd provide complementary
-controls at the host level.
-
-### Forward chain
-
-Default drop. The server does not route traffic between interfaces.
-
-### Adding a web application with an upstream service
-
-When nginx proxies to a local backend (e.g. `localhost:8080`), that traffic travels
-over loopback and is already permitted — no firewall changes needed.
-
-If nginx proxies to an **external** upstream (e.g. an API on another host), add the
-upstream port to `firewall:egress:tcp_ports`.
+- **Ingress** — loopback unrestricted; established/related; TCP ports from `firewall:tcp_ports` (default: 22, 80, 443); unmatched logged and dropped
+- **Egress** — TCP 53/443/465/587, UDP 53/123; loopback unrestricted; unmatched logged and dropped
+- **ICMP** — echo, destination-unreachable, time-exceeded, parameter-problem
+- **ICMPv6** — same operational types plus NDP (RFC 4861 neighbour discovery)
+- **Rate limit** — SSH new connections limited to 4/minute
+- **Forward** — default drop
 
 ---
 
