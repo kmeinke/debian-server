@@ -4,6 +4,7 @@
 import atexit
 import json
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -12,6 +13,7 @@ import time
 from pathlib import Path
 
 VM_NAME = "server-salt-test"
+MINION_ID = "test_hetzner_1"
 REPO_DIR = Path(__file__).resolve().parent.parent
 SECRETS_DIR = REPO_DIR / "salt" / "pillar" / "secrets"
 ROSTER = REPO_DIR / "salt" / "roster"
@@ -22,6 +24,7 @@ Usage: test-hetzner.py [command]
 
 Commands:
   create  Create Hetzner VM, wait for SSH
+  check [state]  Apply a single state (default: base.hostname, creates VM if needed)
   test    Run highstate via salt-ssh against VM (creates if needed, default)
   ssh     SSH into VM as admin
   delete  Delete VM
@@ -110,7 +113,7 @@ def write_vm_roster(ip, env):
     """Write a salt-ssh roster file pointing at the VM."""
     key = str(Path(env["ADMIN_SSH_KEY"]).expanduser())
     ROSTER.write_text(
-        f"server:\n"
+        f"{MINION_ID}:\n"
         f"  host: {ip}\n"
         f"  port: 22\n"
         f"  user: admin\n"
@@ -126,8 +129,8 @@ def cleanup_vm_roster():
 
 
 def decrypt_secrets():
-    """Decrypt all *.sls.enc files to *.sls."""
-    for enc in SECRETS_DIR.glob("*.sls.enc"):
+    """Decrypt all *.sls.enc files to *.sls (recursively)."""
+    for enc in SECRETS_DIR.rglob("*.sls.enc"):
         dec = enc.with_suffix("")  # strip .enc
         with open(dec, "w") as f:
             run(
@@ -137,8 +140,8 @@ def decrypt_secrets():
 
 
 def cleanup_secrets():
-    """Remove all decrypted *.sls files."""
-    for sls in SECRETS_DIR.glob("*.sls"):
+    """Remove all decrypted *.sls files (recursively)."""
+    for sls in SECRETS_DIR.rglob("*.sls"):
         sls.unlink()
 
 
@@ -146,8 +149,34 @@ atexit.register(cleanup_secrets)
 atexit.register(cleanup_vm_roster)
 
 
-def run_with_spinner(cmd):
-    """Run a command with an elapsed time spinner."""
+def parse_salt_output(output):
+    """Parse salt-ssh output into a summary dict and list of failed state IDs."""
+    summary = {}
+    m = re.search(r"Succeeded:\s*(\d+)(?:\s*\(changed=(\d+)\))?", output)
+    if m:
+        summary["succeeded"] = int(m.group(1))
+        summary["changed"] = int(m.group(2)) if m.group(2) else 0
+    m = re.search(r"Failed:\s*(\d+)", output)
+    if m:
+        summary["failed"] = int(m.group(1))
+
+    failed_ids = []
+    if summary.get("failed"):
+        for block in re.split(r"(?=----------)", output):
+            if "Result: False" in block:
+                id_m = re.search(r"^\s+ID:\s+(.+)$", block, re.MULTILINE)
+                if id_m:
+                    failed_ids.append(id_m.group(1).strip())
+
+    return summary, failed_ids
+
+
+def run_with_spinner(cmd, label="Running"):
+    """Run salt-ssh with a spinner, write full output to a log file, print summary."""
+    log_dir = REPO_DIR / ".salt" / "tmp"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"salt-ssh-{int(time.time())}.log"
+
     stop = threading.Event()
     start = time.time()
 
@@ -157,14 +186,14 @@ def run_with_spinner(cmd):
         while not stop.is_set():
             elapsed = int(time.time() - start)
             print(
-                f"\r{chars[i % len(chars)]} Running highstate... {elapsed}s",
+                f"\r{chars[i % len(chars)]} {label}... {elapsed}s",
                 end="",
                 flush=True,
             )
             i += 1
             stop.wait(0.2)
         elapsed = int(time.time() - start)
-        print(f"\r✓ Highstate completed in {elapsed}s    ")
+        print(f"\r✓ Done in {elapsed}s    ")
 
     t = threading.Thread(target=spinner, daemon=True)
     t.start()
@@ -172,10 +201,33 @@ def run_with_spinner(cmd):
     stop.set()
     t.join()
 
-    if result.stdout:
-        print(result.stdout)
-    if result.stderr:
-        print(result.stderr, file=sys.stderr)
+    with open(log_path, "w") as f:
+        if result.stdout:
+            f.write(result.stdout)
+        if result.stderr:
+            f.write("\n--- stderr ---\n")
+            f.write(result.stderr)
+
+    summary, failed_ids = parse_salt_output(result.stdout)
+    if summary:
+        succeeded = summary.get("succeeded", "?")
+        changed = summary.get("changed", 0)
+        failed = summary.get("failed", 0)
+        parts = [f"succeeded={succeeded}"]
+        if changed:
+            parts.append(f"changed={changed}")
+        if failed:
+            parts.append(f"failed={failed}")
+        status = "✓" if not failed else "✗"
+        print(f"{status}  {', '.join(parts)}  — log: {log_path}")
+        for fid in failed_ids:
+            print(f"  FAILED: {fid}")
+    else:
+        if result.stdout:
+            print(result.stdout)
+        if result.stderr:
+            print(result.stderr, file=sys.stderr)
+
     if result.returncode != 0:
         sys.exit(result.returncode)
 
@@ -199,19 +251,40 @@ def cmd_create(env):
     wait_for_sshd(ip)
 
 
+def cmd_check(env, state="base.hostname"):
+    if not vm_exists(env):
+        cmd_create(env)
+    ip = vm_ip(env)
+    write_vm_roster(ip, env)
+    decrypt_secrets()
+    run_with_spinner(
+        [
+            "salt-ssh",
+            "-c", str(REPO_DIR / "salt"),
+            "--ignore-host-keys",
+            MINION_ID,
+            "state.apply", state,
+        ],
+        label=f"Checking {state}",
+    )
+
+
 def cmd_test(env):
     if not vm_exists(env):
         cmd_create(env)
     ip = vm_ip(env)
     write_vm_roster(ip, env)
     decrypt_secrets()
-    run_with_spinner([
-        "salt-ssh",
-        "-c", str(REPO_DIR / "salt"),
-        "--ignore-host-keys",
-        "server",
-        "state.highstate",
-    ])
+    run_with_spinner(
+        [
+            "salt-ssh",
+            "-c", str(REPO_DIR / "salt"),
+            "--ignore-host-keys",
+            MINION_ID,
+            "state.highstate",
+        ],
+        label="Running highstate",
+    )
 
 
 def cmd_ssh(env):
@@ -244,20 +317,23 @@ def cmd_ip(env):
 def main():
     env = load_env()
 
-    commands = {
-        "create": cmd_create,
-        "test": cmd_test,
-        "ssh": cmd_ssh,
-        "delete": cmd_delete,
-        "ip": cmd_ip,
-    }
+    cmd = sys.argv[1] if len(sys.argv) > 1 else None
+    args = sys.argv[2:]
 
-    cmd = sys.argv[1] if len(sys.argv) > 1 else "test"
-
-    if cmd in ("help", "-h", "--help"):
+    if cmd is None or cmd in ("help", "-h", "--help"):
         print(USAGE)
-    elif cmd in commands:
-        commands[cmd](env)
+    elif cmd == "create":
+        cmd_create(env)
+    elif cmd == "check":
+        cmd_check(env, *args)
+    elif cmd == "test":
+        cmd_test(env)
+    elif cmd == "ssh":
+        cmd_ssh(env)
+    elif cmd == "delete":
+        cmd_delete(env)
+    elif cmd == "ip":
+        cmd_ip(env)
     else:
         sys.exit(f"Unknown command: {cmd}\n{USAGE}")
 
