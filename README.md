@@ -37,8 +37,11 @@ states/
 │   └── files/                       Config templates (bash.bashrc, vimrc.local, umask.sh)
 │
 ├── mail/                            Mail delivery
+│   ├── postfix/
+│   │   ├── init.sls                 Postfix send-only smarthost (active, in secure_linux)
+│   │   └── files/                   main.cf, aliases templates
 │   └── exim4/
-│       ├── init.sls                 Exim4 send-only smarthost setup
+│       ├── init.sls                 Exim4 send-only smarthost (available, not active)
 │       └── files/                   exim4 config, passwd.client, aliases
 │
 ├── apt/                             Package management
@@ -85,7 +88,7 @@ pillar/
 │   ├── contact.sls      Company name and security contact email
 │   ├── users.sls        User accounts, groups, SSH public keys, sudo config
 │   ├── ssh.sls          SSH port, auth settings, allowed users
-│   ├── mail.sls         Smarthost relay, root alias
+│   ├── mail.sls         Smarthost relay (host/port for postfix, host::port for exim4), root alias
 │   ├── apt.sls          Codename override, unattended-upgrades schedule
 │   ├── firewall.sls     Allowed ingress TCP ports, egress TCP/UDP ports
 │   ├── kernel.sls       Kernel flags: docker_host, ipv6_disable, perf_event_paranoid, sysrq, coredump
@@ -254,7 +257,7 @@ scripts/sops.py rotate salt/pillar/secrets/hosts/test_docker.sls.enc
 Secrets are available in states as regular pillar data:
 
 ```yaml
-/etc/exim4/passwd.client:
+/etc/postfix/sasl/sasl_passwd:
   file.managed:
-    - contents_pillar: secrets:mail:passwd_client
+    - contents_pillar: secrets:mail:sasl_passwd
 ```

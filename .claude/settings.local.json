@@ -18,7 +18,11 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(wsl -d Debian -- bash -c:*)",
-      "Bash(wsl -d Debian -- python3:*)"
+      "Bash(wsl -d Debian -- python3:*)",
+      "Bash(sops --decrypt:*)",
+      "Bash(SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)"
     ]
   }
 }

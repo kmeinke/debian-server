@@ -20,7 +20,7 @@ include:
   - shell.packages
 
   # Mail
-  - mail.exim4
+  - mail.postfix
 
   # Package management
   - apt
